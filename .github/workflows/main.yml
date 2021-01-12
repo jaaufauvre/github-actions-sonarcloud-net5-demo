@@ -1,13 +1,15 @@
-name: Build
+name: Build, Test, Sonar Begin
 on:
   push:
     branches:
       - master
+  # Read-only repo token
+  # No access to secrets
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
-  build:
-    name: Build
+  main:
+    name: Main
     runs-on: windows-latest
     steps:
       - name: Set up JDK 11
@@ -39,7 +41,6 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"jaaufauvre_github-actions-sonarcloud-net5-demo" /o:"jaaufauvre" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths="./MyClassLibrary.Tests/bin/tests.trx" /d:sonar.cs.opencover.reportsPaths="./MyClassLibrary.Tests/bin/coverage.opencover.xml"
@@ -47,4 +48,8 @@ jobs:
           dotnet build --no-restore
           dotnet test --no-build --verbosity normal -l:"trx;LogFileName=tests.trx" -r:"./MyClassLibrary.Tests/bin/" --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
           move ./MyClassLibrary.Tests/bin/*/coverage.opencover.xml ./MyClassLibrary.Tests/bin/
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+      - name: Upload workspace artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: workspace
+          path: .
