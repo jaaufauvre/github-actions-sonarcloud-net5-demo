@@ -6,9 +6,9 @@ namespace MyClassLibrary.Tests
     public class Class1Test
     {
         [TestMethod]
-        public void TestMethod1()
+        public void TestHello()
         {
-            Assert.AreEqual("Hello", Class1.Hello());
+            Assert.IsTrue(Class1.Hello().Contains("Hello"));
         }
     }
 }
